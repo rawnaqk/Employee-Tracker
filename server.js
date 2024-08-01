@@ -1,53 +1,3 @@
-const inquirer = require('inquirer');
-const client = require('./config/connection');
-const cTable = require('console.table');
-
-const startApp = () => {
-  inquirer.prompt({
-    type: 'list',
-    name: 'action',
-    message: 'What would you like to do?',
-    choices: [
-      'View all departments',
-      'View all roles',
-      'View all employees',
-      'Add a department',
-      'Add a role',
-      'Add an employee',
-      'Update an employee role',
-      'Exit'
-    ]
-  })
-  .then(({ action }) => {
-    switch (action) {
-      case 'View all departments':
-        viewDepartments();
-        break;
-      case 'View all roles':
-        viewRoles();
-        break;
-      case 'View all employees':
-        viewEmployees();
-        break;
-      case 'Add a department':
-        addDepartment();
-        break;
-      case 'Add a role':
-        addRole();
-        break;
-      case 'Add an employee':
-        addEmployee();
-        break;
-      case 'Update an employee role':
-        updateEmployeeRole();
-        break;
-      case 'Exit':
-        client.end();
-        process.exit();
-    }
-  });
-};
-
 const viewDepartments = () => {
   client.query('SELECT * FROM departments')
     .then(result => {
@@ -58,9 +8,9 @@ const viewDepartments = () => {
 
 const viewRoles = () => {
   client.query(`
-    SELECT roles.id, roles.title, roles.salary, departments.name AS department
+    SELECT roles.role_id, roles.role_title, roles.role_salary, departments.department_name AS department
     FROM roles
-    JOIN departments ON roles.department_id = departments.id
+    JOIN departments ON roles.department_id = departments.department_id
   `)
     .then(result => {
       console.table(result.rows);
@@ -70,12 +20,12 @@ const viewRoles = () => {
 
 const viewEmployees = () => {
   client.query(`
-    SELECT employees.id, employees.first_name, employees.last_name, roles.title AS role,
-           departments.name AS department, roles.salary, managers.first_name AS manager
+    SELECT employees.employee_id, employees.first_name, employees.last_name, roles.role_title AS role,
+           departments.department_name AS department, roles.role_salary, managers.first_name AS manager
     FROM employees
-    JOIN roles ON employees.role_id = roles.id
-    JOIN departments ON roles.department_id = departments.id
-    LEFT JOIN employees managers ON employees.manager_id = managers.id
+    JOIN roles ON employees.role_id = roles.role_id
+    JOIN departments ON roles.department_id = departments.department_id
+    LEFT JOIN employees managers ON employees.manager_id = managers.employee_id
   `)
     .then(result => {
       console.table(result.rows);
@@ -86,13 +36,13 @@ const viewEmployees = () => {
 const addDepartment = () => {
   inquirer.prompt({
     type: 'input',
-    name: 'name',
+    name: 'department_name',
     message: 'Enter the name of the new department:'
   })
-  .then(({ name }) => {
-    client.query('INSERT INTO departments (name) VALUES ($1)', [name])
+  .then(({ department_name }) => {
+    client.query('INSERT INTO departments (department_name) VALUES ($1)', [department_name])
       .then(() => {
-        console.log(`Department ${name} added successfully.`);
+        console.log(`Department ${department_name} added successfully.`);
         startApp();
       });
   });
@@ -108,28 +58,28 @@ const addRole = () => {
     inquirer.prompt([
       {
         type: 'input',
-        name: 'title',
+        name: 'role_title',
         message: 'Enter the title of the new role:'
       },
       {
         type: 'input',
-        name: 'salary',
+        name: 'role_salary',
         message: 'Enter the salary for the new role:'
       },
       {
         type: 'list',
-        name: 'department',
+        name: 'department_id',
         message: 'Select the department for the new role:',
         choices: departments.map(department => ({
-          name: department.name,
-          value: department.id
+          name: department.department_name,
+          value: department.department_id
         }))
       }
     ])
-    .then(({ title, salary, department }) => {
-      client.query('INSERT INTO roles (title, salary, department_id) VALUES ($1, $2, $3)', [title, salary, department])
+    .then(({ role_title, role_salary, department_id }) => {
+      client.query('INSERT INTO roles (role_title, role_salary, department_id) VALUES ($1, $2, $3)', [role_title, role_salary, department_id])
         .then(() => {
-          console.log(`Role ${title} added successfully.`);
+          console.log(`Role ${role_title} added successfully.`);
           startApp();
         });
     });
@@ -158,25 +108,25 @@ const addEmployee = () => {
       },
       {
         type: 'list',
-        name: 'role',
+        name: 'role_id',
         message: 'Select the role for the employee:',
         choices: roles.map(role => ({
-          name: role.title,
-          value: role.id
+          name: role.role_title,
+          value: role.role_id
         }))
       },
       {
         type: 'list',
-        name: 'manager',
+        name: 'manager_id',
         message: 'Select the manager for the employee:',
         choices: [...managers.map(manager => ({
           name: `${manager.first_name} ${manager.last_name}`,
-          value: manager.id
+          value: manager.employee_id
         })), { name: 'None', value: null }]
       }
     ])
-    .then(({ first_name, last_name, role, manager }) => {
-      client.query('INSERT INTO employees (first_name, last_name, role_id, manager_id) VALUES ($1, $2, $3, $4)', [first_name, last_name, role, manager])
+    .then(({ first_name, last_name, role_id, manager_id }) => {
+      client.query('INSERT INTO employees (first_name, last_name, role_id, manager_id) VALUES ($1, $2, $3, $4)', [first_name, last_name, role_id, manager_id])
         .then(() => {
           console.log(`Employee ${first_name} ${last_name} added successfully.`);
           startApp();
@@ -197,25 +147,25 @@ const updateEmployeeRole = () => {
     inquirer.prompt([
       {
         type: 'list',
-        name: 'employee',
+        name: 'employee_id',
         message: 'Select the employee to update:',
         choices: employees.map(employee => ({
           name: `${employee.first_name} ${employee.last_name}`,
-          value: employee.id
+          value: employee.employee_id
         }))
       },
       {
         type: 'list',
-        name: 'role',
+        name: 'role_id',
         message: 'Select the new role for the employee:',
         choices: roles.map(role => ({
-          name: role.title,
-          value: role.id
+          name: role.role_title,
+          value: role.role_id
         }))
       }
     ])
-    .then(({ employee, role }) => {
-      client.query('UPDATE employees SET role_id = $1 WHERE id = $2', [role, employee])
+    .then(({ employee_id, role_id }) => {
+      client.query('UPDATE employees SET role_id = $1 WHERE employee_id = $2', [role_id, employee_id])
         .then(() => {
           console.log(`Employee role updated successfully.`);
           startApp();

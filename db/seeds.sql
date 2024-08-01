@@ -5,7 +5,6 @@ INSERT INTO departments (department_name) VALUES
 ('Sales'),
 ('Human Resources'),
 ('Finance'),
-('I.C.T.'),
 
 -- Role
 INSERT INTO roles (role_title, role_salary, department_id) VALUES
@@ -14,7 +13,7 @@ INSERT INTO roles (role_title, role_salary, department_id) VALUES
 ('Marketing Manager', 90000, (SELECT department_id FROM departments WHERE department_name = 'Marketing')),
 ('Sales Representative', 70000, (SELECT department_id FROM departments WHERE department_name = 'Sales')),
 ('Senior Sales Representative', 90000, (SELECT department_id FROM departments WHERE department_name = 'Sales')),
-('HR Specialist', 68000, (SELECT department_id FROM departments WHERE department_name = 'HR')),
+('HR Specialist', 68000, (SELECT department_id FROM departments WHERE department_name = 'Human Resources')),
 ('Financial Analyst', 85000, (SELECT department_id FROM departments WHERE department_name = 'Finance'));
 
 -- Employees
