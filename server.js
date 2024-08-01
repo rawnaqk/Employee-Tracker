@@ -1,3 +1,54 @@
+const inquirer = require('inquirer');
+const client = require('./config/connection');
+const cTable = require('console.table');
+
+// Function Definitions
+const startApp = () => {
+  inquirer.prompt({
+    type: 'list',
+    name: 'action',
+    message: 'What would you like to do?',
+    choices: [
+      'View all departments',
+      'View all roles',
+      'View all employees',
+      'Add a department',
+      'Add a role',
+      'Add an employee',
+      'Update an employee role',
+      'Exit'
+    ]
+  })
+  .then(({ action }) => {
+    switch (action) {
+      case 'View all departments':
+        viewDepartments();
+        break;
+      case 'View all roles':
+        viewRoles();
+        break;
+      case 'View all employees':
+        viewEmployees();
+        break;
+      case 'Add a department':
+        addDepartment();
+        break;
+      case 'Add a role':
+        addRole();
+        break;
+      case 'Add an employee':
+        addEmployee();
+        break;
+      case 'Update an employee role':
+        updateEmployeeRole();
+        break;
+      case 'Exit':
+        client.end();
+        process.exit();
+    }
+  });
+};
+
 const viewDepartments = () => {
   client.query('SELECT * FROM departments')
     .then(result => {
@@ -36,13 +87,13 @@ const viewEmployees = () => {
 const addDepartment = () => {
   inquirer.prompt({
     type: 'input',
-    name: 'department_name',
+    name: 'name',
     message: 'Enter the name of the new department:'
   })
-  .then(({ department_name }) => {
-    client.query('INSERT INTO departments (department_name) VALUES ($1)', [department_name])
+  .then(({ name }) => {
+    client.query('INSERT INTO departments (department_name) VALUES ($1)', [name])
       .then(() => {
-        console.log(`Department ${department_name} added successfully.`);
+        console.log(`Department ${name} added successfully.`);
         startApp();
       });
   });
@@ -58,17 +109,17 @@ const addRole = () => {
     inquirer.prompt([
       {
         type: 'input',
-        name: 'role_title',
+        name: 'title',
         message: 'Enter the title of the new role:'
       },
       {
         type: 'input',
-        name: 'role_salary',
+        name: 'salary',
         message: 'Enter the salary for the new role:'
       },
       {
         type: 'list',
-        name: 'department_id',
+        name: 'department',
         message: 'Select the department for the new role:',
         choices: departments.map(department => ({
           name: department.department_name,
@@ -76,10 +127,10 @@ const addRole = () => {
         }))
       }
     ])
-    .then(({ role_title, role_salary, department_id }) => {
-      client.query('INSERT INTO roles (role_title, role_salary, department_id) VALUES ($1, $2, $3)', [role_title, role_salary, department_id])
+    .then(({ title, salary, department }) => {
+      client.query('INSERT INTO roles (role_title, role_salary, department_id) VALUES ($1, $2, $3)', [title, salary, department])
         .then(() => {
-          console.log(`Role ${role_title} added successfully.`);
+          console.log(`Role ${title} added successfully.`);
           startApp();
         });
     });
@@ -174,4 +225,6 @@ const updateEmployeeRole = () => {
   });
 };
 
+// Start the application
 startApp();
+
