@@ -1,8 +1,10 @@
+// Imports required modules
 const inquirer = require('inquirer');
 const client = require('./config/connection');
 const cTable = require('console.table');
 
 // Function Definitions
+// Starts the application by displaying the main menu
 const startApp = () => {
   inquirer.prompt({
     type: 'list',
@@ -49,6 +51,7 @@ const startApp = () => {
   });
 };
 
+// View all departments
 const viewDepartments = () => {
   client.query('SELECT * FROM departments')
     .then(result => {
@@ -57,6 +60,7 @@ const viewDepartments = () => {
     });
 };
 
+// View all roles
 const viewRoles = () => {
   client.query(`
     SELECT roles.role_id, roles.role_title, roles.role_salary, departments.department_name AS department
@@ -69,6 +73,7 @@ const viewRoles = () => {
     });
 };
 
+// View all employees
 const viewEmployees = () => {
   client.query(`
     SELECT employees.employee_id, employees.first_name, employees.last_name, roles.role_title AS role,
@@ -84,6 +89,7 @@ const viewEmployees = () => {
     });
 };
 
+// Add a new department
 const addDepartment = () => {
   inquirer.prompt({
     type: 'input',
@@ -99,6 +105,7 @@ const addDepartment = () => {
   });
 };
 
+// Add a new role
 const addRole = () => {
   Promise.all([
     client.query('SELECT * FROM departments')
@@ -137,6 +144,7 @@ const addRole = () => {
   });
 };
 
+// Add a new employee
 const addEmployee = () => {
   Promise.all([
     client.query('SELECT * FROM roles'),
@@ -186,6 +194,7 @@ const addEmployee = () => {
   });
 };
 
+//Update an employee's role
 const updateEmployeeRole = () => {
   Promise.all([
     client.query('SELECT * FROM employees'),
