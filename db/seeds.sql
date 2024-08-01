@@ -4,7 +4,7 @@ INSERT INTO departments (department_name) VALUES
 ('Marketing'),
 ('Sales'),
 ('Human Resources'),
-('Finance'),
+('Finance');
 
 -- Role
 INSERT INTO roles (role_title, role_salary, department_id) VALUES
